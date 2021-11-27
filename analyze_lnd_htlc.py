@@ -15,6 +15,10 @@ class Analyze:
             data = []
             for line in f:
                 row = json.loads(line)
+
+                prev_incoming_amt = 0
+                prev_outgoing_amt = 0
+
                 if row['event_type'] == 'FORWARD':
                     if row['event_outcome'] == 'link_fail_event':
                         data.append(
@@ -33,7 +37,7 @@ class Analyze:
                     elif row['event_outcome'] == 'forward_event':
                         prev_incoming_amt = int(row['event_outcome_info']['incoming_amt_msat']) / 1000
                         prev_outgoing_amt = int(row['event_outcome_info']['outgoing_amt_msat']) / 1000
-                    else:
+                    elif prev_incoming_amt > 0 and prev_outgoing_amt > 0:
                         data.append(
                             (
                                 row['timestamp'],
@@ -92,6 +96,8 @@ class Analyze:
         print(df_detail_link_fail_event[['incoming_peer', 'outgoing_peer', 'detail', 'out_capacity', 'out_local_amt', 'out_amt', 'fee']])
         print('')
 
+        return 
+
 def main():
     argument_parser = get_argument_parser()
     arguments = argument_parser.parse_args()
@@ -113,7 +119,7 @@ def get_argument_parser():
         '--start_datetime',
         dest='start_datetime',
         type=datetime_type,
-        help='Analysis start datetime.'
+        help='Analysis start datetime. '
                 'Datetime must be in ISO format. For example: 2021-10-17 00:00:00',
     )
     parser.add_argument(
@@ -121,7 +127,7 @@ def get_argument_parser():
         '--end_datetime',
         dest='end_datetime',
         type=datetime_type,
-        help='Analysis end datetime.'
+        help='Analysis end datetime. '
                 'Datetime must be in ISO format. For example: 2021-10-17 23:59:59',
     )
     return parser
